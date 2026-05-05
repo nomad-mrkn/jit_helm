@@ -21,7 +21,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: mark-completed
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: "{{ .Values.image }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
         - name: JIT_RBAC_APP
