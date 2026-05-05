@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  labels:
+    app.kubernetes.io/instance: ru-spb1-prod-appset
+  name: ru-spb1-prod-appset
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - git:
+      repoURL: 'https://github.com/nomad-mrkn/jit_helm.git'
+      revision: HEAD
+      directories:
+      - path: clusters/test*
+  template:
+    metadata:
+      labels:
+        cluster: '{{.path.basename}}'
+      name: '{{.path.basename}}-install-all' 
+      namespace: argocd
+    spec:
+      destination:
+        server: 'https://kubernetes.default.svc'
+      project: default
+      source:
+        repoURL: 'https://github.com/nomad-mrkn/jit_helm.git'
+        targetRevision: HEAD
+        path: '{{.path.path}}/infr-apps'
+        directory:
+          recurse: true
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: false

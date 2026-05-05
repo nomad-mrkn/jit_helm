@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  labels:
+    app.kubernetes.io/instance: k8s-spb2-backend1-install-all
+  name: k8s-spb2-backend1-install-all
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+        - cluster: k8s-spb2-backend1
+          url: https://spoke-1-control-plane:6443
+  syncPolicy:
+    prune: true
+    preserveResourcesOnDeletion: true
+  template:
+    metadata:
+      labels:
+        cluster: '{{cluster}}'
+      name: '{{cluster}}-install-all'
+    spec:
+      destination:
+        server: 'https://kubernetes.default.svc'
+      project: k8s-spb2-backend1
+      source:
+        directory:
+          recurse: true
+        path: clusters/test1/infr-apps
+        repoURL: 'https://github.com/nomad-mrkn/jit_helm.git'
+        targetRevision: HEAD
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: false

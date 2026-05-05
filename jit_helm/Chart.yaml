@@ -1,0 +1,6 @@
+apiVersion: v2
+name: jit-helm
+description: JIT RBAC Helm chart for ArgoCD multi-source Applications
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

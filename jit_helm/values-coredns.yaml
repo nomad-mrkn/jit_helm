@@ -1,0 +1,21 @@
+appName: k8s-spb2-backend1-coredns
+namespace: coredns
+serviceAccountName: argocd-manager
+serviceAccountNamespace: kube-system
+roleName: argocd-manager-coredns
+
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["create", "update", "patch", "get", "list", "watch"]
+
+  - apiGroups: [""]
+    resources: ["serviceaccounts", "services", "configmaps", "pods", "events"]
+    verbs: ["create", "update", "patch", "get", "list", "watch"]
+
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "list", "create", "update", "patch"]
+
+markerRole:
+  enabled: true
