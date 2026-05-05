@@ -22,7 +22,7 @@ spec:
       containers:
       - name: mark-completed
         image: "{{ .Values.image }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         env:
         - name: JIT_RBAC_APP
           value: {{ .Values.appName | quote }}
