@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-spb2-backend1-certmanager
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - SkipDryRunOnMissingResource=true
+    - RespectIgnoreDifferences=true
+  project: default
+  ignoreDifferences:
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+    - group: ""
+      kind: ServiceAccount
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+  destination:
+    name: kind-test-1
+    namespace: cert-manager
+  sources:
+    # Source 1: JIT RBAC via Helm
+    - repoURL: 'https://github.com/nomad-mrkn/jit_helm.git'
+      targetRevision: HEAD
+      path: jit_helm
+      helm:
+        releaseName: jit-certmanager
+        valueFiles:
+          - values-certmanager.yaml
+    # Source 2: cert-manager Helm chart
+    - repoURL: 'https://github.com/nomad-mrkn/charts.git'
+      targetRevision: HEAD
+      path: cert-manager
+      helm:
+        releaseName: k8s-spb2-backend1-certmanager
+        values: |
+          installCRDs: true
+          startupapicheck:
+            enabled: false
