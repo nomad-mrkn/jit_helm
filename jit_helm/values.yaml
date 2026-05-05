@@ -12,10 +12,7 @@ markerRole:
   enabled: true
   rules: []
 
-image:
-  repository: registry.playteam.ru/bitnami/kubectl
-  tag: "1.31.0"
-  pullPolicy: IfNotPresent
+image: bitnami/kubectl:latest
 
 syncWave: "-1"
 hookDeletePolicy: HookFailed
