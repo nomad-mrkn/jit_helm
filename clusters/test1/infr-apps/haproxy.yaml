@@ -51,7 +51,7 @@ spec:
         values: |
           controller:
             kind: DaemonSet
-            nodeSelector: {}
+            nodeSelector: null
             resources:
              limits:
                cpu: 2
