@@ -51,7 +51,7 @@ spec:
         values: |
           controller:
             kind: DaemonSet
-            nodeSelector: null
+            nodeSelector: {}
             resources:
              limits:
                cpu: 2
@@ -83,10 +83,28 @@ spec:
                 https: https
                 stat: stat
                 hlzcheck: http
+            config:
+              frontend-config-snippet: |
+                http-request set-var(txn.baggage) req.fhdr(baggage) if { req.fhdr(baggage) -m found }
+                http-request set-var(txn.host) req.fhdr(host) if { req.fhdr(host) -m found }
+                http-request set-var(txn.traceparent) req.fhdr(traceparent) if { req.fhdr(traceparent) -m found }
+                http-request set-var(txn.tracestate) req.fhdr(tracestate) if { req.fhdr(tracestate) -m found }
+                http-request set-var(txn.useragent) req.fhdr(user-agent) if { req.fhdr(user-agent) -m found }
+                http-request set-var(txn.xclientid) req.fhdr(x-client-id) if { req.fhdr(x-client-id) -m found }
+                http-request set-var(txn.xclientid) req.fhdr(x-client-service) if !{ req.fhdr(x-client-id) -m found } { req.fhdr(x-client-service) -m found }
+                http-request set-var(txn.xclientversion) req.fhdr(x-client-version) if { req.fhdr(x-client-version) -m found }
+                http-request set-var(txn.xforwardedfor) req.fhdr(x-forwarded-for) if { req.fhdr(x-forwarded-for) -m found }
+                http-request set-var(txn.xforwardedhost) req.fhdr(x-forwarded-host) if { req.fhdr(x-forwarded-host) -m found }
+                http-request set-var(txn.xforwardedpath) req.fhdr(x-forwarded-path) if { req.fhdr(x-forwarded-path) -m found }
+                http-request set-var(txn.xforwardedport) req.fhdr(x-forwarded-port) if { req.fhdr(x-forwarded-port) -m found }
+                http-request set-var(txn.xforwardedproto) req.fhdr(x-forwarded-proto) if { req.fhdr(x-forwarded-proto) -m found }
+                http-request set-var(txn.eid) 'var(txn.baggage),param(eid,",")' if { var(txn.baggage) -m sub eid }
+                http-request set-var(txn.nid) 'var(txn.baggage),param(nid,",")' if { var(txn.baggage) -m sub nid }
+                http-request set-var(txn.odid) 'var(txn.baggage),param(odid,",")' if { var(txn.baggage) -m sub odid }
+                http-request set-var(txn.osid) 'var(txn.baggage),param(osid,",")' if { var(txn.baggage) -m sub osid }
+                http-request set-var(txn.otid) 'var(txn.baggage),param(otid,",")' if { var(txn.baggage) -m sub otid }
+                http-request set-var(txn.sid) 'var(txn.baggage),param(sid,",")' if { var(txn.baggage) -m sub sid }
+                http-request set-var(txn.wid) 'var(txn.baggage),param(wid,",")' if { var(txn.baggage) -m sub wid }
+                http-request set-var(txn.uid) 'var(txn.baggage),param(uid,",")' if { var(txn.baggage) -m sub uid }
             serviceMonitor:
               enabled: false
-            ingressClass: haproxy
-            ingressClassResource:
-              enabled: true
-              name: haproxy
-              default: false
