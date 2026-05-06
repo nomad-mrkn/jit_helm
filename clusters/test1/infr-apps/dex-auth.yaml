@@ -59,7 +59,7 @@ spec:
               short_description: "k8s-spb2-backend1"
               description: "Example Cluster Long Description..."
               client_secret: ${KEYCLOACK-SECRET}
-              issuer: "https://dex.example.com"
+              issuer: "https://accounts.google.com"
               k8s_ca_pem_file: /etc/ca.crt
               k8s_master_uri: "https://k8s-spb2-backend1-api.qq:8002"
               client_id: k8s-spb2-backend1
