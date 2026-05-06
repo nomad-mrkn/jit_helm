@@ -85,3 +85,8 @@ spec:
                 hlzcheck: http
             serviceMonitor:
               enabled: false
+            ingressClass: haproxy
+            ingressClassResource:
+              enabled: true
+              name: haproxy
+              default: false
