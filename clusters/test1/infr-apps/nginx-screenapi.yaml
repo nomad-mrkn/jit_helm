@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-spb2-backend1-screenapi-nginx
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - SkipDryRunOnMissingResource=true
+    - RespectIgnoreDifferences=true
+  project: default
+  ignoreDifferences:
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+    - group: ""
+      kind: ServiceAccount
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+    - group: batch
+      kind: Job
+  destination:
+    name: kind-test-1
+    namespace: kube-system
+  sources:
+    # Source 1: JIT RBAC via Helm
+    - repoURL: 'https://github.com/nomad-mrkn/charts.git'
+      targetRevision: HEAD
+      path: jit-rbac-argo
+      helm:
+        releaseName: jit-nginx-screenapi
+        valueFiles:
+          - apps-rules/nginx-screenapi.yaml
+    # Source 2: Helm chart
+    - repoURL: 'https://github.com/nomad-mrkn/charts.git'
+      targetRevision: HEAD
+      path: ingress-nginx
+      helm:
+        releaseName: screenapi-ingress-nginx
+        values: |
+          # Values are managed via valueFiles in production
+          # For test environment, add test-specific overrides here if needed
