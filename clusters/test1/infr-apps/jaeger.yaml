@@ -52,86 +52,86 @@ spec:
           jaeger:
             create: true
             spec:
-            strategy: production
-            ingress:
-              enabled: false
-            agent:
-              resources:
-                limits:
+              strategy: production
+              ingress:
+                enabled: false
+              agent:
+                image: jaegertracing/jaeger-agent:1.49.0
+                resources:
+                  limits:
                     cpu: 500m
                     memory: 256Mi
-                requests:
+                  requests:
                     cpu: 100m
                     memory: 64Mi
-              sidecarSecurityContext:
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop:
-                    - ALL
-                runAsNonRoot: true
-                runAsUser: 1001
-                runAsGroup: 1001
-                seccompProfile:
-                  type: RuntimeDefault
-                image: jaegertracing/jaeger-agent:1.49.0
-            query:
-              resources:
-                requests:
-                  cpu: 100m
-                  memory: 128Mi
-                limits:
-                    cpu: 500m
-                    memory: 256Mi
+                sidecarSecurityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                      - ALL
+                  runAsNonRoot: true
+                  runAsUser: 1001
+                  runAsGroup: 1001
+                  seccompProfile:
+                    type: RuntimeDefault
+              query:
                 image: jaegertracing/jaeger-query:1.49.0
-              tolerations:
-                - key: "node-role.kubernetes.io/infr"
-                  operator: "Exists"
-                  effect: "NoSchedule"
-              affinity:
-                nodeAffinity:
-                  preferredDuringSchedulingIgnoredDuringExecution:
-                    - weight: 1
-                      preference:
-                        matchExpressions:
-                          - key: "node-role.kubernetes.io/infr"
-                            operator: "Exists"
-            collector:
-                replicas: 1
-                image: jaegertracing/jaeger-collector:1.49.0
-              options:
-                collector:
-                    num-workers: 10
-                    queue-size: 1000
-              resources:
-                requests:
+                resources:
+                  requests:
                     cpu: 100m
                     memory: 128Mi
-                limits:
+                  limits:
                     cpu: 500m
                     memory: 256Mi
-              tolerations:
-                - key: "node-role.kubernetes.io/infr"
-                  operator: "Exists"
-                  effect: "NoSchedule"
-              affinity:
-                nodeAffinity:
-                  preferredDuringSchedulingIgnoredDuringExecution:
-                    - weight: 1
-                      preference:
-                        matchExpressions:
-                          - key: "node-role.kubernetes.io/infr"
-                            operator: "Exists"
-            storage:
-              type: cassandra
-              options:
-                cassandra:
-                  servers: cassandra-jaeger1.spb.dc,cassandra-jaeger2.spb.dc,cassandra-jaeger3.spb.dc
-                  keyspace: jaeger_v1_ru_spb
-              cassandraCreateSchema:
-                enabled: false
-              dependencies:
-                enabled: false
-              secretName: jaeger-secret
+                tolerations:
+                  - key: "node-role.kubernetes.io/infr"
+                    operator: "Exists"
+                    effect: "NoSchedule"
+                affinity:
+                  nodeAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                      - weight: 1
+                        preference:
+                          matchExpressions:
+                            - key: "node-role.kubernetes.io/infr"
+                              operator: "Exists"
+              collector:
+                replicas: 1
+                image: jaegertracing/jaeger-collector:1.49.0
+                options:
+                  collector:
+                    num-workers: 10
+                    queue-size: 1000
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+                  limits:
+                    cpu: 500m
+                    memory: 256Mi
+                tolerations:
+                  - key: "node-role.kubernetes.io/infr"
+                    operator: "Exists"
+                    effect: "NoSchedule"
+                affinity:
+                  nodeAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                      - weight: 1
+                        preference:
+                          matchExpressions:
+                            - key: "node-role.kubernetes.io/infr"
+                              operator: "Exists"
+              storage:
+                type: cassandra
+                options:
+                  cassandra:
+                    servers: cassandra-jaeger1.spb.dc,cassandra-jaeger2.spb.dc,cassandra-jaeger3.spb.dc
+                    keyspace: jaeger_v1_ru_spb
+                cassandraCreateSchema:
+                  enabled: false
+                dependencies:
+                  enabled: false
+                secretName: jaeger-secret
           webhooks:
             mutatingWebhook:
               create: false
