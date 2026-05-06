@@ -1,0 +1,75 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-spb1-backend1-victoria-metrics-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - SkipDryRunOnMissingResource=true
+    - RespectIgnoreDifferences=true
+  project: default
+  ignoreDifferences:
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+    - group: ""
+      kind: ServiceAccount
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+  destination:
+    name: kind-test-1
+    namespace: victoria-metrics-operator
+  sources:
+    # Source 1: JIT RBAC via Helm
+    - repoURL: 'https://github.com/nomad-mrkn/charts.git'
+      targetRevision: HEAD
+      path: jit-rbac-argo
+      helm:
+        releaseName: jit-victoria-metrics-operator
+        valueFiles:
+          - apps-rules/victoria-metrics-operator.yaml
+    # Source 2: Helm chart
+    - repoURL: 'https://github.com/nomad-mrkn/charts.git'
+      targetRevision: HEAD
+      path: victoria-metrics-operator
+      helm:
+        releaseName: k8s-spb1-backend1-victoria-metrics-operator
+        values: |
+          image:
+            repository: docker.io/victoriametrics/operator
+            tag: v0.41.1
+          env:
+            - name: VM_VMAGENTDEFAULT_CONFIGRELOADIMAGE
+              value: quay.io/prometheus-operator/prometheus-config-reloader:v0.68.0
+          rbac:
+            create: true
+          vmagent:
+            enabled: true
+            remoteWrite:
+              - url: http://localhost:8428/api/v1/write
+            shardCount: 1
+          metrics-server:
+            enabled: true
+            rbac:
+              create: true
+            args:
+              - --kubelet-insecure-tls
+          prometheus-node-exporter:
+            enabled: true
+            image:
+              repository: docker.io/prom/node-exporter
+              tag: v1.4.0

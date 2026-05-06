@@ -1,0 +1,93 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-spb2-backend1-coredns
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - SkipDryRunOnMissingResource=true
+    - RespectIgnoreDifferences=true
+  project: default
+  ignoreDifferences:
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+    - group: ""
+      kind: ServiceAccount
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+  destination:
+    name: kind-test-1
+    namespace: coredns
+  sources:
+    # Source 1: JIT RBAC via Helm
+    - repoURL: 'https://github.com/nomad-mrkn/charts.git'
+      targetRevision: HEAD
+      path: jit-rbac-argo
+      helm:
+        releaseName: jit-coredns
+        valueFiles:
+          - apps-rules/coredns.yaml
+    # Source 2: CoreDNS Helm chart
+    - repoURL: 'https://github.com/nomad-mrkn/charts.git'
+      targetRevision: HEAD
+      path: coredns
+      helm:
+        releaseName: coredns
+        values: |
+          image:
+            repository: coredns/coredns
+            tag: 1.12.1
+            pullPolicy: IfNotPresent
+          replicas: 2
+          tolerations: []
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  preference:
+                    matchExpressions:
+                      - key: node-role.kubernetes.io/infr
+                        operator: Exists
+          DNSConfig:
+            Corefile: |
+              .:53 {
+                  errors
+                  health {
+                      lameduck 5s
+                  }
+                  ready
+                  log . {
+                      class error
+                  }
+                  prometheus :9153
+                  hosts /etc/hosts {
+                      127.0.0.1 elasticsearch-master
+                      127.0.0.1 keda-operator.keda.svc.cluster.local
+                      127.0.0.1 dex.example.com
+                      fallthrough
+                  }
+                  kubernetes cluster.local in-addr.arpa ip6.arpa {
+                      pods insecure
+                      fallthrough in-addr.arpa ip6.arpa
+                  }
+                  forward . /etc/resolv.conf
+                  cache 30
+                  loop
+                  reload
+                  loadbalance
+              }

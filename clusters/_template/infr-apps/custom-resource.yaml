@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-spb2-backend1-custom-resource
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  syncPolicy:
+    automated:
+      prune: false
+    syncOptions:
+    - FailOnSharedResource=false
+    - Validate=false
+  project: default
+  destination:
+    name: kind-test-1
+    namespace: kube-system
+  source:
+    repoURL: 'https://github.com/nomad-mrkn/jit_helm.git'
+    targetRevision: HEAD
+    path: clusters/test1/custom-resource
+    directory:
+      include: clusterrolebinding.yaml

@@ -1,0 +1,79 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-spb2-backend1-vault
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - SkipDryRunOnMissingResource=true
+    - RespectIgnoreDifferences=true
+  project: default
+  ignoreDifferences:
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+    - group: ""
+      kind: ServiceAccount
+      jsonPointers:
+        - /metadata/labels/jit-rbac~1sync-status
+        - /metadata/annotations
+  destination:
+    name: kind-test-1
+    namespace: vault-operator
+  sources:
+    # Source 1: JIT RBAC via Helm
+    - repoURL: 'https://github.com/nomad-mrkn/charts.git'
+      targetRevision: HEAD
+      path: jit-rbac-argo
+      helm:
+        releaseName: jit-vault-operator
+        valueFiles:
+          - apps-rules/vault-operator.yaml
+    # Source 2: Helm chart
+    - repoURL: 'https://github.com/nomad-mrkn/charts.git'
+      targetRevision: HEAD
+      path: vault-secrets-operator
+      helm:
+        releaseName: vault-secrets-operator
+        values: |
+          image:
+            repository: ricoberger/vault-secrets-operator
+            tag: 1.16.5
+            pullPolicy: IfNotPresent
+          replicaCount: 0
+          rbac:
+            create: true
+            createrole: true
+            namespaced: false
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          serviceMonitor:
+            enabled: false
+          vmServiceScrape:
+            enabled: true
+            labels: {}
+            interval: 60s
+            scrapeTimeout: 10s
+            honorLabels: true
+            relabelings: []
+          tolerations: []
+          nodeSelector: {}
+          affinity: {}

@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-spb2-backend1-rbac-base
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  destination:
+    name: kind-test-1
+    namespace: kube-system
+  source:
+    repoURL: 'https://github.com/nomad-mrkn/0zargo.git'
+    targetRevision: HEAD
+    path: clusters/test1/custom-resource
+    directory:
+      include: clusterrole.yaml
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: false
