@@ -35,13 +35,13 @@ spec:
     namespace: cert-manager
   sources:
     # Source 1: JIT RBAC via Helm
-    - repoURL: 'https://github.com/nomad-mrkn/jit_helm.git'
+    - repoURL: 'https://github.com/nomad-mrkn/charts.git'
       targetRevision: HEAD
-      path: jit_helm
+      path: jit-rbac-argo
       helm:
         releaseName: jit-certmanager
         valueFiles:
-          - values-certmanager.yaml
+          - apps-rules/certmanager.yaml
     # Source 2: cert-manager Helm chart
     - repoURL: 'https://github.com/nomad-mrkn/charts.git'
       targetRevision: HEAD
